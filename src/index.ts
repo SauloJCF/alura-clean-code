@@ -6,7 +6,7 @@ import {ParsedQs} from 'qs';
 
 // ===================================================================================
 // INÍCIO DA APLICAÇÃO - TUDO EM UM ARQUIVO SÓ
-// ===================================================================================
+// =============== ====================================================================
 
 /**
  * Inicialização do Express e configuração do middleware para aceitar JSON.
@@ -22,7 +22,7 @@ app.use(express.json());
  * Tipo para representar uma cidade.
  * Propriedades: id, nome da cidade e a unidade federativa (UF).
  */
-type TP = {
+type ModeloCidade = {
 	id: number;
 	nome_cidade: string;
 	uf: string;
@@ -33,7 +33,7 @@ type TP = {
  * Propriedades: id, nome completo, documento (doc) e endereço (end).
  * O endereço é um objeto que contém a rua, número e o ID da cidade (relacionamento).
  */
-type TU = {
+type ModeloUsuario = {
 	id: number;
 	nome_completo: string;
 	doc: string;
@@ -46,12 +46,12 @@ type TU = {
 
 // Vamos usar listas genéricas para armazenar os dados em memória.
 // lista1 para cidades, lista2 para usuários. Nomes ruins propositalmente.
-let lista1: TP[] = [
+let lista_cidade: ModeloCidade[] = [
 	{id: 1, nome_cidade: 'Propriá', uf: 'SE'},
 	{id: 2, nome_cidade: 'Aracaju', uf: 'SE'},
 ];
 
-let lista2: TU[] = [
+let lista_usuarios: ModeloUsuario[] = [
 	{
 		id: 1,
 		nome_completo: 'Fulano de Tal',
@@ -61,8 +61,8 @@ let lista2: TU[] = [
 ];
 
 // Contadores globais para gerar novos IDs.
-let contador_cidade = lista1.length;
-let contador_usuario = lista2.length;
+let contador_cidade = lista_cidade.length;
+let contador_usuario = lista_usuarios.length;
 
 // ===================================================================================
 // ROTAS E LÓGICA DE NEGÓCIO (TUDO MISTURADO)
@@ -73,7 +73,7 @@ let contador_usuario = lista2.length;
  * Rota para criar uma nova cidade.
  * Valida, verifica duplicidade e insere. Tudo na mesma função.
  */
-app.post('/c', (req: Request, res: Response) => {
+app.post('/cidades', (req: Request, res: Response) => {
 	// Pega os dados do corpo da requisição. Nome genérico "dados".Ï
 	const dados = req.body;
 
@@ -83,8 +83,8 @@ app.post('/c', (req: Request, res: Response) => {
 	}
 
 	// Verifica se a cidade já existe para não duplicar (loop ineficiente).
-	for (let i = 0; i < lista1.length; i++) {
-		if (lista1[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista1[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
+	for (let i = 0; i < lista_cidade.length; i++) {
+		if (lista_cidade[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista_cidade[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
 			return res.status(409).send({erro: 'Esta cidade já está cadastrada.'});
 		}
 	}
@@ -97,7 +97,7 @@ app.post('/c', (req: Request, res: Response) => {
 		uf: dados.uf,
 	};
 
-	lista1.push(novaCoisa); // Adiciona na lista.
+	lista_cidade.push(novaCoisa); // Adiciona na lista.
 
 	// Comentário redundante: Retorna a cidade criada com o status 201.
 	res.status(201).json(novaCoisa);
@@ -106,9 +106,9 @@ app.post('/c', (req: Request, res: Response) => {
 /**
  * Rota para listar todas as cidades.
  */
-app.get('/c', (req: Request, res: Response) => {
+app.get('/cidades', (req: Request, res: Response) => {
 	// Retorna a lista completa de cidades.
-	res.status(200).json(lista1);
+	res.status(200).json(lista_cidade);
 });
 
 /**
@@ -128,8 +128,8 @@ const processarU = (req: Request, res: Response) => {
 
 		// Validação de documento - verifica se já existe
 		let docExiste = false;
-		for (let i = 0; i < lista2.length; i++) {
-			if (lista2[i].doc === doc) {
+		for (let i = 0; i < lista_usuarios.length; i++) {
+			if (lista_usuarios[i].doc === doc) {
 				docExiste = true;
 				break;
 			}
@@ -140,8 +140,8 @@ const processarU = (req: Request, res: Response) => {
 
 		// Verifica se a cidade informada existe na nossa lista de cidades
 		let cidadeValida = false;
-		for (let i = 0; i < lista1.length; i++) {
-			if (lista1[i].id === end.cidade_id) {
+		for (let i = 0; i < lista_cidade.length; i++) {
+			if (lista_cidade[i].id === end.cidade_id) {
 				cidadeValida = true;
 				break;
 			}
@@ -157,7 +157,7 @@ const processarU = (req: Request, res: Response) => {
 			doc,
 			end,
 		};
-		lista2.push(novoUsuario);
+		lista_usuarios.push(novoUsuario);
 		res.status(201).json(novoUsuario);
 
 	} else if (req.method === 'GET') {
@@ -167,7 +167,7 @@ const processarU = (req: Request, res: Response) => {
 		if (query && query.doc) {
 			// Procurar um usuário por documento
 			let encontrado = null;
-			for (const u of lista2) { // 'u' é um nome de variável ruim e curto
+			for (const u of lista_usuarios) { // 'u' é um nome de variável ruim e curto
 				if (u.doc === query.doc) {
 					encontrado = u;
 					break;
@@ -180,7 +180,7 @@ const processarU = (req: Request, res: Response) => {
 			}
 		} else {
 			// Retornar todos os usuários
-			res.status(200).json(lista2);
+			res.status(200).json(lista_usuarios);
 		}
 
 	} else {
@@ -197,8 +197,8 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 
 	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
 	let indice = -1;
-	for (let i = 0; i < lista2.length; i++) {
-		if (lista2[i].id === id) {
+	for (let i = 0; i < lista_usuarios.length; i++) {
+		if (lista_usuarios[i].id === id) {
 			indice = i;
 			break;
 		}
@@ -210,7 +210,7 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 
 	// Lógica baseada no método HTTP
 	if (req.method === 'GET') {
-		return res.json(lista2[indice]);
+		return res.json(lista_usuarios[indice]);
 	} else if (req.method === 'PUT') {
 		// Atualizar o usuário
 		const {nome_completo, end} = req.body;
@@ -218,12 +218,12 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 			return res.status(400).send({erro: 'Dados incompletos para atualização.'});
 		}
 		// Não permitimos mudar o documento (regra de negócio escondida aqui)
-		lista2[indice].nome_completo = nome_completo;
-		lista2[indice].end = end;
-		return res.json(lista2[indice]);
+		lista_usuarios[indice].nome_completo = nome_completo;
+		lista_usuarios[indice].end = end;
+		return res.json(lista_usuarios[indice]);
 	} else if (req.method === 'DELETE') {
 		// Deletar o usuário
-		lista2.splice(indice, 1);
+		lista_usuarios.splice(indice, 1);
 		return res.status(204).send(); // Sem conteúdo
 	} else if (req.method === 'POST') {
 		return res.status(404).json("Método não suportado para usuário específico.")
@@ -231,14 +231,12 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 };
 
 
-// Agrupando as rotas de usuário em um único handler.
 // O método .route do Express é usado aqui.
-app.route('/u')
+app.route('/usuarios')
 	.post(processarU)
 	.get(processarU);
 
-// Rotas para manipular um usuário específico por ID.
-app.route('/u/:id').all(manipularItemEspecifico)
+app.route('/usuarios/:id').all(manipularItemEspecifico)
 
 
 // ===================================================================================
