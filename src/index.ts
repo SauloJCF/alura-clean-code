@@ -3,6 +3,8 @@
  */
 import express, { Request, Response } from 'express';
 import { ParsedQs } from 'qs';
+import { ModeloUsuario } from './models/models';
+import { lista1 } from './constants';
 
 // ===================================================================================
 // INÍCIO DA APLICAÇÃO - TUDO EM UM ARQUIVO SÓ
@@ -18,38 +20,8 @@ app.use(express.json());
 // "BANCO DE DADOS" EM MEMÓRIA E TIPAGENS
 // ===================================================================================
 
-/**
- * Tipo para representar uma cidade.
- * Propriedades: id, nome da cidade e a unidade federativa (UF).
- */
-type ModeloCidade = {
-	id: number;
-	nome_cidade: string;
-	uf: string;
-};
 
-/**
- * Tipo para representar um usuário.
- * Propriedades: id, nome completo, documento (doc) e endereço (end).
- * O endereço é um objeto que contém a rua, número e o ID da cidade (relacionamento).
- */
-type ModeloUsuario = {
-	id: number;
-	nome_completo: string;
-	doc: string;
-	end: {
-		rua: string;
-		num: number;
-		cidade_id: number;
-	};
-};
 
-// Vamos usar listas genéricas para armazenar os dados em memória.
-// lista1 para cidades, lista2 para usuários. Nomes ruins propositalmente.
-let lista1: ModeloCidade[] = [
-	{ id: 1, nome_cidade: 'Propriá', uf: 'SE' },
-	{ id: 2, nome_cidade: 'Aracaju', uf: 'SE' },
-];
 
 let lista2: ModeloUsuario[] = [
 	{
@@ -61,54 +33,13 @@ let lista2: ModeloUsuario[] = [
 ];
 
 // Contadores globais para gerar novos IDs.
-let contador_cidade = lista1.length;
 let contador_usuario = lista2.length;
 
 // ===================================================================================
 // ROTAS E LÓGICA DE NEGÓCIO (TUDO MISTURADO)
 // ===================================================================================
 
-/**
- * Rota para criar uma nova cidade.
- * Valida, verifica duplicidade e insere. Tudo na mesma função.
- */
-app.post('/cidades', (req: Request, res: Response) => {
-	// Pega os dados do corpo da requisição. Nome genérico "dados".Ï
-	const dados = req.body;
 
-	// Validação básica e confusa diretamente na função da rota.
-	if (!dados.nome_cidade || !dados.uf) {
-		return res.status(400).send({ erro: 'Dados incompletos: nome_cidade e uf são obrigatórios.' });
-	}
-
-	// Verifica se a cidade já existe para não duplicar (loop ineficiente).
-	for (let i = 0; i < lista1.length; i++) {
-		if (lista1[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista1[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
-			return res.status(409).send({ erro: 'Esta cidade já está cadastrada.' });
-		}
-	}
-
-	// Incrementa o contador e cria o novo objeto.
-	contador_cidade = contador_cidade + 1;
-	const novaCoisa = {
-		id: contador_cidade,
-		nome_cidade: dados.nome_cidade,
-		uf: dados.uf,
-	};
-
-	lista1.push(novaCoisa); // Adiciona na lista.
-
-	// Comentário redundante: Retorna a cidade criada com o status 201.
-	res.status(201).json(novaCoisa);
-});
-
-/**
- * Rota para listar todas as cidades.
- */
-app.get('/cidades', (req: Request, res: Response) => {
-	// Retorna a lista completa de cidades.
-	res.status(200).json(lista1);
-});
 
 /**
  * Função ENORME e com MÚLTIPLAS RESPONSABILIDADES para processar requisições de usuários.
