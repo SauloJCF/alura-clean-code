@@ -1,12 +1,12 @@
 /**
  * Importações necessárias para o Express e para a tipagem do TypeScript.
  */
-import express, {Request, Response} from 'express';
-import {ParsedQs} from 'qs';
+import express, { Request, Response } from 'express';
+import { ParsedQs } from 'qs';
 
 // ===================================================================================
 // INÍCIO DA APLICAÇÃO - TUDO EM UM ARQUIVO SÓ
-// =============== ====================================================================
+// ===================================================================================
 
 /**
  * Inicialização do Express e configuração do middleware para aceitar JSON.
@@ -46,28 +46,27 @@ type ModeloUsuario = {
 
 // Vamos usar listas genéricas para armazenar os dados em memória.
 // lista1 para cidades, lista2 para usuários. Nomes ruins propositalmente.
-let lista_cidade: ModeloCidade[] = [
-	{id: 1, nome_cidade: 'Propriá', uf: 'SE'},
-	{id: 2, nome_cidade: 'Aracaju', uf: 'SE'},
+let lista1: ModeloCidade[] = [
+	{ id: 1, nome_cidade: 'Propriá', uf: 'SE' },
+	{ id: 2, nome_cidade: 'Aracaju', uf: 'SE' },
 ];
 
-let lista_usuarios: ModeloUsuario[] = [
+let lista2: ModeloUsuario[] = [
 	{
 		id: 1,
 		nome_completo: 'Fulano de Tal',
 		doc: '11122233344',
-		end: {rua: 'Rua A', num: 10, cidade_id: 1},
+		end: { rua: 'Rua A', num: 10, cidade_id: 1 },
 	},
 ];
 
 // Contadores globais para gerar novos IDs.
-let contador_cidade = lista_cidade.length;
-let contador_usuario = lista_usuarios.length;
+let contador_cidade = lista1.length;
+let contador_usuario = lista2.length;
 
 // ===================================================================================
 // ROTAS E LÓGICA DE NEGÓCIO (TUDO MISTURADO)
 // ===================================================================================
-
 
 /**
  * Rota para criar uma nova cidade.
@@ -79,13 +78,13 @@ app.post('/cidades', (req: Request, res: Response) => {
 
 	// Validação básica e confusa diretamente na função da rota.
 	if (!dados.nome_cidade || !dados.uf) {
-		return res.status(400).send({erro: 'Dados incompletos: nome_cidade e uf são obrigatórios.'});
+		return res.status(400).send({ erro: 'Dados incompletos: nome_cidade e uf são obrigatórios.' });
 	}
 
 	// Verifica se a cidade já existe para não duplicar (loop ineficiente).
-	for (let i = 0; i < lista_cidade.length; i++) {
-		if (lista_cidade[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista_cidade[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
-			return res.status(409).send({erro: 'Esta cidade já está cadastrada.'});
+	for (let i = 0; i < lista1.length; i++) {
+		if (lista1[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista1[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
+			return res.status(409).send({ erro: 'Esta cidade já está cadastrada.' });
 		}
 	}
 
@@ -97,7 +96,7 @@ app.post('/cidades', (req: Request, res: Response) => {
 		uf: dados.uf,
 	};
 
-	lista_cidade.push(novaCoisa); // Adiciona na lista.
+	lista1.push(novaCoisa); // Adiciona na lista.
 
 	// Comentário redundante: Retorna a cidade criada com o status 201.
 	res.status(201).json(novaCoisa);
@@ -108,46 +107,46 @@ app.post('/cidades', (req: Request, res: Response) => {
  */
 app.get('/cidades', (req: Request, res: Response) => {
 	// Retorna a lista completa de cidades.
-	res.status(200).json(lista_cidade);
+	res.status(200).json(lista1);
 });
 
 /**
  * Função ENORME e com MÚLTIPLAS RESPONSABILIDADES para processar requisições de usuários.
  * Lida com POST (criar) e GET (listar/buscar). Viola o SRP.
  */
-const processarU = (req: Request, res: Response) => {
+const processarUsuarios = (req: Request, res: Response) => {
 	// Lógica diferenciada por método HTTP dentro da mesma função.
 	if (req.method === 'POST') {
 		// Lógica para CRIAR um usuário
-		const {nome_completo, doc, end} = req.body;
+		const { nome_completo, doc, end } = req.body;
 
 		// Validação de campos obrigatórios
 		if (!nome_completo || !doc || !end || !end.rua || !end.num || !end.cidade_id) {
-			return res.status(400).send({erro: 'Dados incompletos para o usuário.'});
+			return res.status(400).send({ erro: 'Dados incompletos para o usuário.' });
 		}
 
 		// Validação de documento - verifica se já existe
 		let docExiste = false;
-		for (let i = 0; i < lista_usuarios.length; i++) {
-			if (lista_usuarios[i].doc === doc) {
+		for (let i = 0; i < lista2.length; i++) {
+			if (lista2[i].doc === doc) {
 				docExiste = true;
 				break;
 			}
 		}
 		if (docExiste) {
-			return res.status(409).send({erro: 'Documento já cadastrado.'});
+			return res.status(409).send({ erro: 'Documento já cadastrado.' });
 		}
 
 		// Verifica se a cidade informada existe na nossa lista de cidades
 		let cidadeValida = false;
-		for (let i = 0; i < lista_cidade.length; i++) {
-			if (lista_cidade[i].id === end.cidade_id) {
+		for (let i = 0; i < lista1.length; i++) {
+			if (lista1[i].id === end.cidade_id) {
 				cidadeValida = true;
 				break;
 			}
 		}
 		if (!cidadeValida) {
-			return res.status(400).send({erro: 'A cidade informada não existe.'});
+			return res.status(400).send({ erro: 'A cidade informada não existe.' });
 		}
 
 		contador_usuario += 1; // Incrementa o contador global
@@ -157,7 +156,7 @@ const processarU = (req: Request, res: Response) => {
 			doc,
 			end,
 		};
-		lista_usuarios.push(novoUsuario);
+		lista2.push(novoUsuario);
 		res.status(201).json(novoUsuario);
 
 	} else if (req.method === 'GET') {
@@ -167,7 +166,7 @@ const processarU = (req: Request, res: Response) => {
 		if (query && query.doc) {
 			// Procurar um usuário por documento
 			let encontrado = null;
-			for (const u of lista_usuarios) { // 'u' é um nome de variável ruim e curto
+			for (const u of lista2) { // 'u' é um nome de variável ruim e curto
 				if (u.doc === query.doc) {
 					encontrado = u;
 					break;
@@ -176,11 +175,11 @@ const processarU = (req: Request, res: Response) => {
 			if (encontrado) {
 				res.status(200).json(encontrado);
 			} else {
-				res.status(404).send({erro: 'Usuário não encontrado com o documento informado.'});
+				res.status(404).send({ erro: 'Usuário não encontrado com o documento informado.' });
 			}
 		} else {
 			// Retornar todos os usuários
-			res.status(200).json(lista_usuarios);
+			res.status(200).json(lista2);
 		}
 
 	} else {
@@ -197,47 +196,49 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 
 	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
 	let indice = -1;
-	for (let i = 0; i < lista_usuarios.length; i++) {
-		if (lista_usuarios[i].id === id) {
+	for (let i = 0; i < lista2.length; i++) {
+		if (lista2[i].id === id) {
 			indice = i;
 			break;
 		}
 	}
 
 	if (indice === -1) {
-		return res.status(404).send({erro: 'Usuário não encontrado.'});
+		return res.status(404).send({ erro: 'Usuário não encontrado.' });
 	}
 
 	// Lógica baseada no método HTTP
 	if (req.method === 'GET') {
-		return res.json(lista_usuarios[indice]);
+		return res.json(lista2[indice]);
 	} else if (req.method === 'PUT') {
 		// Atualizar o usuário
-		const {nome_completo, end} = req.body;
+		const { nome_completo, end } = req.body;
 		if (!nome_completo || !end) {
-			return res.status(400).send({erro: 'Dados incompletos para atualização.'});
+			return res.status(400).send({ erro: 'Dados incompletos para atualização.' });
 		}
 		// Não permitimos mudar o documento (regra de negócio escondida aqui)
-		lista_usuarios[indice].nome_completo = nome_completo;
-		lista_usuarios[indice].end = end;
-		return res.json(lista_usuarios[indice]);
+		lista2[indice].nome_completo = nome_completo;
+		lista2[indice].end = end;
+		return res.json(lista2[indice]);
 	} else if (req.method === 'DELETE') {
 		// Deletar o usuário
-		lista_usuarios.splice(indice, 1);
+		lista2.splice(indice, 1);
 		return res.status(204).send(); // Sem conteúdo
-	} else if (req.method === 'POST') {
-		return res.status(404).json("Método não suportado para usuário específico.")
 	}
 };
 
 
+// Agrupando as rotas de usuário em um único handler.
 // O método .route do Express é usado aqui.
 app.route('/usuarios')
-	.post(processarU)
-	.get(processarU);
+	.post(processarUsuarios)
+	.get(processarUsuarios);
 
-app.route('/usuarios/:id').all(manipularItemEspecifico)
-
+// Rotas para manipular um usuário específico por ID.
+app.route('/usuarios/:id')
+	.get(manipularItemEspecifico)
+	.put(manipularItemEspecifico)
+	.delete(manipularItemEspecifico);
 
 // ===================================================================================
 // INICIALIZAÇÃO DO SERVIDOR
