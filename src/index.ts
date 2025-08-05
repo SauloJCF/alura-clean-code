@@ -5,6 +5,7 @@ import express, { Request, Response } from 'express';
 import { ParsedQs } from 'qs';
 import { ModeloUsuario } from './models/models';
 import { lista1 } from './constants';
+import CidadeController from './domains/cidades/cidade.controller';
 
 // ===================================================================================
 // INÍCIO DA APLICAÇÃO - TUDO EM UM ARQUIVO SÓ
@@ -171,6 +172,7 @@ app.route('/usuarios/:id')
 	.put(manipularItemEspecifico)
 	.delete(manipularItemEspecifico);
 
+app.use('/cidades', CidadeController);
 // ===================================================================================
 // INICIALIZAÇÃO DO SERVIDOR
 // ===================================================================================
