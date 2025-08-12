@@ -1,10 +1,7 @@
 /**
  * Importações necessárias para o Express e para a tipagem do TypeScript.
  */
-import express, { Request, Response } from 'express';
-import { ParsedQs } from 'qs';
-import { ModeloUsuario } from './models/models';
-import { lista1 } from './constants';
+import express from 'express';
 import CidadeController from './domains/cidades/cidade.controller';
 import UsuarioController from "./domains/usuarios/usuario.controller";
 
