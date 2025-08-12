@@ -81,12 +81,8 @@ const criarUsuario = (req: Request, res: Response) => {
 }
 
 
+const buscarUsuario = (req: Request, res: Response) => {
 
-/**
- * Função para lidar com um item específico (usuário).
- * Outra função com múltiplas responsabilidades: GET, PUT e DELETE.
- */
-const manipularItemEspecifico = (req: Request, res: Response) => {
 	const id = parseInt(req.params.id, 10);
 
 	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
@@ -102,24 +98,60 @@ const manipularItemEspecifico = (req: Request, res: Response) => {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
 	}
 
-	// Lógica baseada no método HTTP
-	if (req.method === 'GET') {
-		return res.json(lista2[indice]);
-	} else if (req.method === 'PUT') {
-		// Atualizar o usuário
-		const {nome_completo, end} = req.body;
-		if (!nome_completo || !end) {
-			return res.status(400).send({erro: 'Dados incompletos para atualização.'});
+	return res.json(lista2[indice]);
+};
+
+const editarUsuario = (req: Request, res: Response) => {
+	const id = parseInt(req.params.id, 10);
+
+	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
+	let indice = -1;
+	for (let i = 0; i < lista2.length; i++) {
+		if (lista2[i].id === id) {
+			indice = i;
+			break;
 		}
-		// Não permitimos mudar o documento (regra de negócio escondida aqui)
-		lista2[indice].nome_completo = nome_completo;
-		lista2[indice].end = end;
-		return res.json(lista2[indice]);
-	} else if (req.method === 'DELETE') {
-		// Deletar o usuário
-		lista2.splice(indice, 1);
-		return res.status(204).send(); // Sem conteúdo
 	}
+
+	if (indice === -1) {
+		return res.status(404).send({erro: 'Usuário não encontrado.'});
+	}
+
+	// Atualizar o usuário
+	const {nome_completo, end} = req.body;
+	if (!nome_completo || !end) {
+		return res.status(400).send({erro: 'Dados incompletos para atualização.'});
+	}
+	// Não permitimos mudar o documento (regra de negócio escondida aqui)
+	lista2[indice].nome_completo = nome_completo;
+	lista2[indice].end = end;
+	return res.json(lista2[indice]);
+}
+
+/**
+ * Função para lidar com um item específico (usuário).
+ * Outra função com múltiplas responsabilidades: GET, PUT e DELETE.
+ */
+const deletarUsuario = (req: Request, res: Response) => {
+
+	const id = parseInt(req.params.id, 10);
+
+	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
+	let indice = -1;
+	for (let i = 0; i < lista2.length; i++) {
+		if (lista2[i].id === id) {
+			indice = i;
+			break;
+		}
+	}
+
+	if (indice === -1) {
+		return res.status(404).send({erro: 'Usuário não encontrado.'});
+	}
+
+	lista2.splice(indice, 1);
+	return res.status(204).send(); // Sem conteúdo
+
 };
 
 
@@ -131,8 +163,8 @@ router.route('/')
 
 // Rotas para manipular um usuário específico por ID.
 router.route('/:id')
-	.get(manipularItemEspecifico)
-	.put(manipularItemEspecifico)
-	.delete(manipularItemEspecifico);
+	.get(buscarUsuario)
+	.put(editarUsuario)
+	.delete(deletarUsuario);
 
 export default router;
