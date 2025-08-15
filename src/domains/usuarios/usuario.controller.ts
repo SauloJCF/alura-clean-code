@@ -70,10 +70,7 @@ const criarUsuario = (req: Request, res: Response) => {
 
 	contador_usuario += 1; // Incrementa o contador global
 	const novoUsuario = {
-		id: contador_usuario,
-		nome_completo,
-		doc,
-		end,
+		id: contador_usuario, nome_completo, doc, end,
 	};
 	lista2.push(novoUsuario);
 	res.status(201).json(novoUsuario);
@@ -81,9 +78,7 @@ const criarUsuario = (req: Request, res: Response) => {
 }
 
 
-const buscarUsuario = (req: Request, res: Response) => {
-
-	const id = parseInt(req.params.id, 10);
+function buscarIndiceUsuario(id: number) {
 
 	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
 	let indice = -1;
@@ -93,6 +88,13 @@ const buscarUsuario = (req: Request, res: Response) => {
 			break;
 		}
 	}
+	return indice;
+}
+
+const buscarUsuario = (req: Request, res: Response) => {
+	const id = parseInt(req.params.id, 10);
+
+	const indice = buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
@@ -104,14 +106,7 @@ const buscarUsuario = (req: Request, res: Response) => {
 const editarUsuario = (req: Request, res: Response) => {
 	const id = parseInt(req.params.id, 10);
 
-	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
-	let indice = -1;
-	for (let i = 0; i < lista2.length; i++) {
-		if (lista2[i].id === id) {
-			indice = i;
-			break;
-		}
-	}
+	const indice = buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
@@ -136,14 +131,7 @@ const deletarUsuario = (req: Request, res: Response) => {
 
 	const id = parseInt(req.params.id, 10);
 
-	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
-	let indice = -1;
-	for (let i = 0; i < lista2.length; i++) {
-		if (lista2[i].id === id) {
-			indice = i;
-			break;
-		}
-	}
+	const indice = buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
