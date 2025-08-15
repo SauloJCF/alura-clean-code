@@ -1,10 +1,12 @@
 import express, {Request, Response} from "express";
 import {ParsedQs} from "qs";
 import {lista1, lista2} from "../../constants";
-
+import UsuarioService from "./usuario.service";
 
 const router = express.Router();
 let contador_usuario = lista2.length;
+
+const service = UsuarioService();
 
 // ===================================================================================
 // ROTAS E LÓGICA DE NEGÓCIO (TUDO MISTURADO)
@@ -36,7 +38,7 @@ const buscarUsuarios = (req: Request, res: Response) => {
 }
 
 const criarUsuario = (req: Request, res: Response) => {
-// Lógica para CRIAR um usuário
+	// Lógica para CRIAR um usuário
 	const {nome_completo, doc, end} = req.body;
 
 	// Validação de campos obrigatórios
@@ -77,24 +79,10 @@ const criarUsuario = (req: Request, res: Response) => {
 
 }
 
-
-function buscarIndiceUsuario(id: number) {
-
-	// Encontrar o índice do usuário na lista para poder manipular (atualizar/deletar)
-	let indice = -1;
-	for (let i = 0; i < lista2.length; i++) {
-		if (lista2[i].id === id) {
-			indice = i;
-			break;
-		}
-	}
-	return indice;
-}
-
 const buscarUsuario = (req: Request, res: Response) => {
 	const id = parseInt(req.params.id, 10);
 
-	const indice = buscarIndiceUsuario(id);
+	const indice = service.buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
@@ -106,7 +94,7 @@ const buscarUsuario = (req: Request, res: Response) => {
 const editarUsuario = (req: Request, res: Response) => {
 	const id = parseInt(req.params.id, 10);
 
-	const indice = buscarIndiceUsuario(id);
+	const indice = service.buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
@@ -131,7 +119,7 @@ const deletarUsuario = (req: Request, res: Response) => {
 
 	const id = parseInt(req.params.id, 10);
 
-	const indice = buscarIndiceUsuario(id);
+	const indice = service.buscarIndiceUsuario(id);
 
 	if (indice === -1) {
 		return res.status(404).send({erro: 'Usuário não encontrado.'});
