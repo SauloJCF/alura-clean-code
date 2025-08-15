@@ -1,3 +1,4 @@
+import {Request, Response, NextFunction} from "express";
 import {lista2} from "../../constants";
 
 function buscarIndiceUsuario(id: number) {
@@ -14,9 +15,20 @@ function buscarIndiceUsuario(id: number) {
 }
 
 
+function validarDadosDaRequisicaoDeCriarUsuario (req: Request, res: Response, next: NextFunction) {
+	const {nome_completo, doc, end} = req.body;
+
+	// Validação de campos obrigatórios
+	if (!nome_completo || !doc || !end || !end.rua || !end.num || !end.cidade_id) {
+		return res.status(400).send({erro: 'Dados incompletos para o usuário.'});
+	}
+
+	next()
+}
+
 function UsuarioService() {
 
-	return {buscarIndiceUsuario}
+	return {buscarIndiceUsuario, validarDadosDaRequisicaoDeCriarUsuario}
 }
 
 

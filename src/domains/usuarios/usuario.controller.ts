@@ -41,11 +41,6 @@ const criarUsuario = (req: Request, res: Response) => {
 	// Lógica para CRIAR um usuário
 	const {nome_completo, doc, end} = req.body;
 
-	// Validação de campos obrigatórios
-	if (!nome_completo || !doc || !end || !end.rua || !end.num || !end.cidade_id) {
-		return res.status(400).send({erro: 'Dados incompletos para o usuário.'});
-	}
-
 	// Validação de documento - verifica se já existe
 	let docExiste = false;
 	for (let i = 0; i < lista2.length; i++) {
@@ -134,7 +129,7 @@ const deletarUsuario = (req: Request, res: Response) => {
 // Agrupando as rotas de usuário em um único handler.
 // O método .route do Express é usado aqui.
 router.route('/')
-	.post(criarUsuario)
+	.post(service.validarDadosDaRequisicaoDeCriarUsuario, criarUsuario)
 	.get(buscarUsuarios);
 
 // Rotas para manipular um usuário específico por ID.
