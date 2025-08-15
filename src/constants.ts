@@ -1,13 +1,13 @@
 import {ModeloCidade, ModeloUsuario} from './models/models';
 
 // Vamos usar listas genéricas para armazenar os dados em memória.
-// lista1 para cidades, lista2 para usuários. Nomes ruins propositalmente.
-const lista1: ModeloCidade[] = [
+// listaCidades para cidades, listaUsuario para usuários. Nomes ruins propositalmente.
+const listaCidades: ModeloCidade[] = [
 	{ id: 1, nome_cidade: 'Propriá', uf: 'SE' },
 	{ id: 2, nome_cidade: 'Aracaju', uf: 'SE' },
 ];
 
-let lista2: ModeloUsuario[] = [
+let listaUsuario: ModeloUsuario[] = [
 	{
 		id: 1,
 		nome_completo: 'Fulano de Tal',
@@ -16,4 +16,4 @@ let lista2: ModeloUsuario[] = [
 	},
 ];
 
-export { lista1, lista2 };
+export { listaCidades, listaUsuario };

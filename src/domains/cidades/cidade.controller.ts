@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { lista1 } from '../../constants';
+import { listaCidades } from '../../constants';
 
 const router = express.Router();
 
@@ -17,13 +17,13 @@ router.post('/', (req: Request, res: Response) => {
 	}
 
 	// Verifica se a cidade já existe para não duplicar (loop ineficiente).
-	for (let i = 0; i < lista1.length; i++) {
-		if (lista1[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && lista1[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
+	for (let i = 0; i < listaCidades.length; i++) {
+		if (listaCidades[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && listaCidades[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
 			return res.status(409).send({ erro: 'Esta cidade já está cadastrada.' });
 		}
 	}
 
-	let contador_cidade = lista1.length;
+	let contador_cidade = listaCidades.length;
 
 	// Incrementa o contador e cria o novo objeto.
 	contador_cidade = contador_cidade + 1;
@@ -33,7 +33,7 @@ router.post('/', (req: Request, res: Response) => {
 		uf: dados.uf,
 	};
 
-	lista1.push(novaCoisa); // Adiciona na lista.
+	listaCidades.push(novaCoisa); // Adiciona na lista.
 
 	// Comentário redundante: Retorna a cidade criada com o status 201.
 	res.status(201).json(novaCoisa);
@@ -44,7 +44,7 @@ router.post('/', (req: Request, res: Response) => {
  */
 router.get('/', (req: Request, res: Response) => {
 	// Retorna a lista completa de cidades.
-	res.status(200).json(lista1);
+	res.status(200).json(listaCidades);
 });
 
 

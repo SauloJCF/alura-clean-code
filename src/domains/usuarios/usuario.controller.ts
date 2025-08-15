@@ -1,10 +1,10 @@
 import express, {Request, Response} from "express";
 import {ParsedQs} from "qs";
-import {lista1, lista2} from "../../constants";
+import {listaUsuario} from "../../constants";
 import UsuarioService from "./usuario.service";
 
 const router = express.Router();
-let contador_usuario = lista2.length;
+let contador_usuario = listaUsuario.length;
 
 const service = UsuarioService();
 
@@ -19,13 +19,8 @@ const buscarUsuarios = (req: Request, res: Response) => {
 
 	if (query && query.doc) {
 		// Procurar um usuário por documento
-		let encontrado = null;
-		for (const u of lista2) { // 'u' é um nome de variável ruim e curto
-			if (u.doc === query.doc) {
-				encontrado = u;
-				break;
-			}
-		}
+		const encontrado = service.buscarUsuarioPorDocumento(query.doc as string);
+
 		if (encontrado) {
 			res.status(200).json(encontrado);
 		} else {
@@ -33,7 +28,7 @@ const buscarUsuarios = (req: Request, res: Response) => {
 		}
 	} else {
 		// Retornar todos os usuários
-		res.status(200).json(lista2);
+		res.status(200).json(listaUsuario);
 	}
 }
 
@@ -41,35 +36,11 @@ const criarUsuario = (req: Request, res: Response) => {
 	// Lógica para CRIAR um usuário
 	const {nome_completo, doc, end} = req.body;
 
-	// Validação de documento - verifica se já existe
-	let docExiste = false;
-	for (let i = 0; i < lista2.length; i++) {
-		if (lista2[i].doc === doc) {
-			docExiste = true;
-			break;
-		}
-	}
-	if (docExiste) {
-		return res.status(409).send({erro: 'Documento já cadastrado.'});
-	}
-
-	// Verifica se a cidade informada existe na nossa lista de cidades
-	let cidadeValida = false;
-	for (let i = 0; i < lista1.length; i++) {
-		if (lista1[i].id === end.cidade_id) {
-			cidadeValida = true;
-			break;
-		}
-	}
-	if (!cidadeValida) {
-		return res.status(400).send({erro: 'A cidade informada não existe.'});
-	}
-
 	contador_usuario += 1; // Incrementa o contador global
 	const novoUsuario = {
 		id: contador_usuario, nome_completo, doc, end,
 	};
-	lista2.push(novoUsuario);
+	listaUsuario.push(novoUsuario);
 	res.status(201).json(novoUsuario);
 
 }
@@ -79,31 +50,20 @@ const buscarUsuario = (req: Request, res: Response) => {
 
 	const indice = service.buscarIndiceUsuario(id);
 
-	if (indice === -1) {
-		return res.status(404).send({erro: 'Usuário não encontrado.'});
-	}
-
-	return res.json(lista2[indice]);
+	return res.json(listaUsuario[indice]);
 };
 
 const editarUsuario = (req: Request, res: Response) => {
 	const id = parseInt(req.params.id, 10);
 
 	const indice = service.buscarIndiceUsuario(id);
-
-	if (indice === -1) {
-		return res.status(404).send({erro: 'Usuário não encontrado.'});
-	}
-
 	// Atualizar o usuário
 	const {nome_completo, end} = req.body;
-	if (!nome_completo || !end) {
-		return res.status(400).send({erro: 'Dados incompletos para atualização.'});
-	}
+
 	// Não permitimos mudar o documento (regra de negócio escondida aqui)
-	lista2[indice].nome_completo = nome_completo;
-	lista2[indice].end = end;
-	return res.json(lista2[indice]);
+	listaUsuario[indice].nome_completo = nome_completo;
+	listaUsuario[indice].end = end;
+	return res.json(listaUsuario[indice]);
 }
 
 /**
@@ -116,26 +76,21 @@ const deletarUsuario = (req: Request, res: Response) => {
 
 	const indice = service.buscarIndiceUsuario(id);
 
-	if (indice === -1) {
-		return res.status(404).send({erro: 'Usuário não encontrado.'});
-	}
-
-	lista2.splice(indice, 1);
+	listaUsuario.splice(indice, 1);
 	return res.status(204).send(); // Sem conteúdo
-
 };
 
 
 // Agrupando as rotas de usuário em um único handler.
 // O método .route do Express é usado aqui.
 router.route('/')
-	.post(service.validarDadosDaRequisicaoDeCriarUsuario, criarUsuario)
+	.post(service.validarDadosDaRequisicaoDeCriarUsuario, service.validarSeUsuarioExisteComDocumento, service.verificarSeCidadeExiste, criarUsuario)
 	.get(buscarUsuarios);
 
 // Rotas para manipular um usuário específico por ID.
 router.route('/:id')
-	.get(buscarUsuario)
-	.put(editarUsuario)
-	.delete(deletarUsuario);
+	.get(service.validarSeUsuarioExiste, buscarUsuario)
+	.put(service.validarSeUsuarioExiste, service.validarDadosParaAtualizacao, editarUsuario)
+	.delete(service.validarSeUsuarioExiste, deletarUsuario);
 
 export default router;
