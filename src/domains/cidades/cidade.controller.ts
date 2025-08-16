@@ -1,51 +1,30 @@
-import express, { Request, Response } from 'express';
-import { listaCidades } from '../../constants';
+import express, {Request, Response} from 'express';
+import {listaCidades} from '../../constants';
+import CidadeService from "./cidade.service";
 
 const router = express.Router();
 
-/**
- * Rota para criar uma nova cidade.
- * Valida, verifica duplicidade e insere. Tudo na mesma função.
- */
-router.post('/', (req: Request, res: Response) => {
-	// Pega os dados do corpo da requisição. Nome genérico "dados".Ï
+const service = CidadeService()
+
+const criarCidade = (req: Request, res: Response) => {
 	const dados = req.body;
 
-	// Validação básica e confusa diretamente na função da rota.
-	if (!dados.nome_cidade || !dados.uf) {
-		return res.status(400).send({ erro: 'Dados incompletos: nome_cidade e uf são obrigatórios.' });
-	}
+	const novaCidade = service.adicionarCidadeNaBase(dados);
 
-	// Verifica se a cidade já existe para não duplicar (loop ineficiente).
-	for (let i = 0; i < listaCidades.length; i++) {
-		if (listaCidades[i].nome_cidade.toLowerCase() === dados.nome_cidade.toLowerCase() && listaCidades[i].uf.toLowerCase() === dados.uf.toLowerCase()) {
-			return res.status(409).send({ erro: 'Esta cidade já está cadastrada.' });
-		}
-	}
+	res.status(201).json(novaCidade);
+};
 
-	let contador_cidade = listaCidades.length;
 
-	// Incrementa o contador e cria o novo objeto.
-	contador_cidade = contador_cidade + 1;
-	const novaCoisa = {
-		id: contador_cidade,
-		nome_cidade: dados.nome_cidade,
-		uf: dados.uf,
-	};
-
-	listaCidades.push(novaCoisa); // Adiciona na lista.
-
-	// Comentário redundante: Retorna a cidade criada com o status 201.
-	res.status(201).json(novaCoisa);
-});
+const listarCidades = (_req: Request, res: Response) => {
+	res.status(200).json(listaCidades);
+};
 
 /**
  * Rota para listar todas as cidades.
  */
-router.get('/', (req: Request, res: Response) => {
-	// Retorna a lista completa de cidades.
-	res.status(200).json(listaCidades);
-});
+router
+	.post('/', service.validarDadosCadstroCidade, service.validarSeCidadeExiste, criarCidade)
+	.get('/', listarCidades);
 
 
 export default router;
