@@ -25,10 +25,28 @@ function validarCidadeJaCadastrada(req: Request, res: Response, next: NextFuncti
     next();
 }
 
+function adicionarCidadeNaBase(dados: any):any {
+     // Contadores globais para gerar novos IDs.
+    let contador_cidade = listaCidades.length;
+
+    // Incrementa o contador e cria o novo objeto.
+    contador_cidade = contador_cidade + 1;
+    const novaCidade = {
+        id: contador_cidade,
+        nome_cidade: dados.nome_cidade,
+        uf: dados.uf,
+    };
+
+    listaCidades.push(novaCidade); // Adiciona na lista.
+
+    return novaCidade;
+}
+
 function CidadeService() {
     return {
         validarCamposObrigatoriosCadastrarCidade,
-        validarCidadeJaCadastrada
+        validarCidadeJaCadastrada,
+        adicionarCidadeNaBase
     };
 }
 
