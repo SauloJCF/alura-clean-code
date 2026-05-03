@@ -10,36 +10,7 @@ const usuarioService = UsuarioService();
 
 const criarUsuario = (req: Request, res: Response) => {
 	// Lógica para CRIAR um usuário
-	const { nome_completo, doc, end } = req.body;
-
-	// Validação de campos obrigatórios
-	if (!nome_completo || !doc || !end || !end.rua || !end.num || !end.cidade_id) {
-		return res.status(400).send({ erro: 'Dados incompletos para o usuário.' });
-	}
-
-	// Validação de documento - verifica se já existe
-	let docExiste = false;
-	for (let i = 0; i < listaUsuarios.length; i++) {
-		if (listaUsuarios[i].doc === doc) {
-			docExiste = true;
-			break;
-		}
-	}
-	if (docExiste) {
-		return res.status(409).send({ erro: 'Documento já cadastrado.' });
-	}
-
-	// Verifica se a cidade informada existe na nossa lista de cidades
-	let cidadeValida = false;
-	for (let i = 0; i < listaCidades.length; i++) {
-		if (listaCidades[i].id === end.cidade_id) {
-			cidadeValida = true;
-			break;
-		}
-	}
-	if (!cidadeValida) {
-		return res.status(400).send({ erro: 'A cidade informada não existe.' });
-	}
+	const { nome_completo, doc, end } = req.body;	
 
 	let contador_usuario = listaUsuarios.length;
 
@@ -84,7 +55,7 @@ const buscarUsuario = (req: Request, res: Response) => {
 
 		return res.json(listaUsuarios[indice]);
 	} catch (error) {
-		tratarExcecao(error, res);
+		usuarioService.tratarExcecao(error, res);
 	}
 };
 
@@ -93,16 +64,13 @@ const atualizarUsuario = (req: Request, res: Response) => {
 		const indice = usuarioService.buscarIndiceUsuarioLista(req.params.id);
 		// Atualizar o usuário
 		const { nome_completo, end } = req.body;
-		if (!nome_completo || !end) {
-			return res.status(400).send({ erro: 'Dados incompletos para atualização.' });
-		}
 		// Não permitimos mudar o documento (regra de negócio escondida aqui)
 		listaUsuarios[indice].nome_completo = nome_completo;
 		listaUsuarios[indice].end = end;
 
 		return res.json(listaUsuarios[indice]);
 	} catch (error) {
-		tratarExcecao(error, res);
+		usuarioService.tratarExcecao(error, res);
 	}
 };
 
@@ -115,32 +83,25 @@ const excluirUsuario = (req: Request, res: Response) => {
 
 		return res.status(204).send(); // Sem conteúdo
 	} catch (error) {
-		tratarExcecao(error, res);
+		usuarioService.tratarExcecao(error, res);
 	}
 };
-
-
-
-
-const tratarExcecao = (error: any, res: Response) => {
-	if (error instanceof BaseError) {
-		return res.status(error.statusCode).send({ code: error.code, message: error.message });
-	} else {
-		return res.status(500).send({ error })
-	}
-}
-
 
 // Agrupando as rotas de usuário em um único handler.
 // O método .route do Express é usado aqui.
 router.route('/')
-	.post(criarUsuario)
+	.post(
+		usuarioService.validarCamposObrigatoriosRequisicaoCriarUsuario, 
+		usuarioService.validarDocExistenteRequisicaoCriarUsuario,
+		usuarioService.validarCidadeRequisicaoCriarUsuario,
+		criarUsuario
+	)
 	.get(buscarUsuarios);
 
 // Rotas para manipular um usuário específico por ID.
 router.route('/:id')
 	.get(buscarUsuario)
-	.put(atualizarUsuario)
+	.put(usuarioService.validarCamposObrigatoriosRequisicaoAtualizarUsuario, atualizarUsuario)
 	.delete(excluirUsuario);
 
 export default router;
