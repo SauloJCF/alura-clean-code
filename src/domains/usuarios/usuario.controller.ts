@@ -1,9 +1,12 @@
 import express, { Request, Response } from 'express';
 import { ParsedQs } from 'qs';
 import { listaCidades, listaUsuarios } from "../../consts";
-import { BaseError, UsuarioNaoEncontradoError } from '../../execeptions';
+import { BaseError } from '../../execeptions';
+import UsuarioService from './usuario.service';
 
 const router = express.Router();
+
+const usuarioService = UsuarioService();
 
 const criarUsuario = (req: Request, res: Response) => {
 	// Lógica para CRIAR um usuário
@@ -77,7 +80,7 @@ const buscarUsuarios = (req: Request, res: Response) => {
 
 const buscarUsuario = (req: Request, res: Response) => {
 	try {
-		const indice = buscarIndiceUsuarioLista(req.params.id);
+		const indice = usuarioService.buscarIndiceUsuarioLista(req.params.id);
 
 		return res.json(listaUsuarios[indice]);
 	} catch (error) {
@@ -87,7 +90,7 @@ const buscarUsuario = (req: Request, res: Response) => {
 
 const atualizarUsuario = (req: Request, res: Response) => {
 	try {
-		const indice = buscarIndiceUsuarioLista(req.params.id);
+		const indice = usuarioService.buscarIndiceUsuarioLista(req.params.id);
 		// Atualizar o usuário
 		const { nome_completo, end } = req.body;
 		if (!nome_completo || !end) {
@@ -105,7 +108,7 @@ const atualizarUsuario = (req: Request, res: Response) => {
 
 const excluirUsuario = (req: Request, res: Response) => {
 	try {
-		const indice = buscarIndiceUsuarioLista(req.params.id);
+		const indice = usuarioService.buscarIndiceUsuarioLista(req.params.id);
 		
 		// Deletar o usuário
 		listaUsuarios.splice(indice, 1);
@@ -117,17 +120,7 @@ const excluirUsuario = (req: Request, res: Response) => {
 };
 
 
-const buscarIndiceUsuarioLista = (idParam: any): number => {
-	const id = parseInt(idParam, 10);
 
-	for (let i = 0; i < listaUsuarios.length; i++) {
-		if (listaUsuarios[i].id === id) {
-			return i;
-		}
-	}
-
-	throw new UsuarioNaoEncontradoError();
-};
 
 const tratarExcecao = (error: any, res: Response) => {
 	if (error instanceof BaseError) {
